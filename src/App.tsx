@@ -22,13 +22,29 @@ import {
   DEFAULT_PANTAU_USER,
   resetToSeedData,
 } from './utils/storage';
+import {
+  subscribeToMembers,
+  subscribeToSetoran,
+  subscribeToCategories,
+  subscribeToAdminConfig,
+  syncAddMember,
+  syncAddBulkMembers,
+  syncUpdateMember,
+  syncDeleteMember,
+  syncSaveSetoran,
+  syncDeleteSetoran,
+  syncAddCategory,
+  syncUpdateCategory,
+  syncDeleteCategory,
+} from './services/firestoreSync';
 import { CheckCircle2, AlertCircle, Lock, Eye, UserCheck, Users, FolderKanban, HandHeart, Plus } from 'lucide-react';
 
 export default function App() {
   // Application State
-  const [members, setMembers] = useState<Member[]>([]);
-  const [setoranList, setSetoranList] = useState<JariyahSetoran[]>([]);
-  const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [members, setMembers] = useState<Member[]>(() => getStoredMembers());
+  const [setoranList, setSetoranList] = useState<JariyahSetoran[]>(() => getStoredSetoran());
+  const [categories, setCategories] = useState<CategoryItem[]>(() => getStoredCategories());
+  const [isCloudConnected, setIsCloudConnected] = useState<boolean>(true);
   
   // Auth State - Defaults to Pengawas/Pantau, persists if logged in as Admin
   const [currentUser, setCurrentUser] = useState<User>(() => getStoredAuthUser());
@@ -48,14 +64,38 @@ export default function App() {
   // Toast Notification State
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Load Initial Data on Mount
+  // Real-time Cloud Synchronization with Firestore across all Devices (HP, Laptop, PC)
   useEffect(() => {
-    const loadedMembers = getStoredMembers();
-    const loadedSetoran = getStoredSetoran();
-    const loadedCategories = getStoredCategories();
-    setMembers(loadedMembers);
-    setSetoranList(loadedSetoran);
-    setCategories(loadedCategories);
+    // 1. Subscribe to Members collection real-time
+    const unsubMembers = subscribeToMembers(
+      (updatedMembers) => {
+        setMembers(updatedMembers);
+        setIsCloudConnected(true);
+      },
+      () => setIsCloudConnected(false)
+    );
+
+    // 2. Subscribe to Setoran collection real-time
+    const unsubSetoran = subscribeToSetoran((updatedSetoran) => {
+      setSetoranList(updatedSetoran);
+    });
+
+    // 3. Subscribe to Categories collection real-time
+    const unsubCategories = subscribeToCategories((updatedCats) => {
+      setCategories(updatedCats);
+    });
+
+    // 4. Subscribe to Admin Configuration
+    const unsubAdmin = subscribeToAdminConfig((_password) => {
+      // synced to local storage
+    });
+
+    return () => {
+      unsubMembers();
+      unsubSetoran();
+      unsubCategories();
+      unsubAdmin();
+    };
   }, []);
 
   const showToast = (msg: string) => {
@@ -103,8 +143,8 @@ export default function App() {
     }
   };
 
-  // Member Handlers
-  const handleAddMember = (newMemberData: Omit<Member, 'id' | 'createdAt'>) => {
+  // Member Handlers (Optimistic local update + Real-time Cloud Sync)
+  const handleAddMember = async (newMemberData: Omit<Member, 'id' | 'createdAt'>) => {
     const newMember: Member = {
       ...newMemberData,
       id: `mbr-${Date.now()}`,
@@ -113,10 +153,11 @@ export default function App() {
     const updated = [newMember, ...members];
     setMembers(updated);
     saveMembers(updated);
-    showToast(`Anggota "${newMember.name}" berhasil ditambahkan.`);
+    await syncAddMember(newMember);
+    showToast(`Anggota "${newMember.name}" berhasil ditambahkan & disinkronkan ke Cloud.`);
   };
 
-  const handleAddBulkMembers = (newMembersData: Omit<Member, 'id' | 'createdAt'>[]) => {
+  const handleAddBulkMembers = async (newMembersData: Omit<Member, 'id' | 'createdAt'>[]) => {
     const timestamp = Date.now();
     const createdIso = new Date().toISOString();
     const newMembersList: Member[] = newMembersData.map((m, idx) => ({
@@ -127,17 +168,19 @@ export default function App() {
     const updated = [...newMembersList, ...members];
     setMembers(updated);
     saveMembers(updated);
-    showToast(`Berhasil mengimpor ${newMembersList.length} data anggota baru dari file Excel.`);
+    await syncAddBulkMembers(newMembersList);
+    showToast(`Berhasil mengimpor ${newMembersList.length} data anggota baru (Tersinkron ke Cloud).`);
   };
 
-  const handleEditMember = (updatedMember: Member) => {
+  const handleEditMember = async (updatedMember: Member) => {
     const updated = members.map((m) => (m.id === updatedMember.id ? updatedMember : m));
     setMembers(updated);
     saveMembers(updated);
+    await syncUpdateMember(updatedMember);
     showToast(`Data anggota "${updatedMember.name}" berhasil diperbarui.`);
   };
 
-  const handleDeleteMember = (id: string) => {
+  const handleDeleteMember = async (id: string) => {
     const memberObj = members.find((m) => m.id === id);
     const updatedMembers = members.filter((m) => m.id !== id);
     const updatedSetoran = setoranList.filter((s) => s.memberId !== id);
@@ -147,11 +190,12 @@ export default function App() {
     setSetoranList(updatedSetoran);
     saveSetoran(updatedSetoran);
 
-    showToast(`Data anggota "${memberObj?.name || 'Anggota'}" telah dihapus.`);
+    await syncDeleteMember(id);
+    showToast(`Data anggota "${memberObj?.name || 'Anggota'}" telah dihapus dari Cloud.`);
   };
 
   // Category Handlers
-  const handleAddCategory = (catData: Omit<CategoryItem, 'id' | 'createdAt'>) => {
+  const handleAddCategory = async (catData: Omit<CategoryItem, 'id' | 'createdAt'>) => {
     const newCat: CategoryItem = {
       ...catData,
       id: `cat-${Date.now()}`,
@@ -160,31 +204,32 @@ export default function App() {
     const updated = [...categories, newCat];
     setCategories(updated);
     saveCategories(updated);
+    await syncAddCategory(newCat);
     showToast(`Kelompok "${newCat.name}" berhasil ditambahkan.`);
   };
 
-  const handleEditCategory = (oldName: string, updatedCat: CategoryItem) => {
+  const handleEditCategory = async (oldName: string, updatedCat: CategoryItem) => {
     const updatedCategories = categories.map((c) => (c.id === updatedCat.id ? updatedCat : c));
     setCategories(updatedCategories);
     saveCategories(updatedCategories);
 
-    // If category name changed, update all members with old category name
+    let updatedMembers = members;
     if (oldName !== updatedCat.name) {
-      const updatedMembers = members.map((m) =>
+      updatedMembers = members.map((m) =>
         m.category === oldName ? { ...m, category: updatedCat.name } : m
       );
       setMembers(updatedMembers);
       saveMembers(updatedMembers);
     }
+    await syncUpdateCategory(oldName, updatedCat, members);
     showToast(`Kelompok "${updatedCat.name}" berhasil diperbarui.`);
   };
 
-  const handleDeleteCategory = (catId: string, catName: string, fallbackCatName?: string) => {
+  const handleDeleteCategory = async (catId: string, catName: string, fallbackCatName?: string) => {
     const updatedCategories = categories.filter((c) => c.id !== catId);
     setCategories(updatedCategories);
     saveCategories(updatedCategories);
 
-    // Reassign members in deleted category to fallback category
     if (fallbackCatName) {
       const updatedMembers = members.map((m) =>
         m.category === catName ? { ...m, category: fallbackCatName } : m
@@ -192,42 +237,43 @@ export default function App() {
       setMembers(updatedMembers);
       saveMembers(updatedMembers);
     }
+    await syncDeleteCategory(catId, catName, fallbackCatName, members);
     showToast(`Kelompok "${catName}" telah dihapus.`);
   };
 
   // Setoran Handlers
-  const handleSaveSetoran = (
+  const handleSaveSetoran = async (
     setoranData: Omit<JariyahSetoran, 'id'>,
     existingId?: string
   ) => {
+    let savedRecord: JariyahSetoran;
     let updatedSetoran: JariyahSetoran[];
     const member = members.find((m) => m.id === setoranData.memberId);
 
     if (existingId) {
-      // Update existing record
-      updatedSetoran = setoranList.map((s) =>
-        s.id === existingId ? { ...s, ...setoranData } : s
-      );
+      savedRecord = { ...setoranData, id: existingId };
+      updatedSetoran = setoranList.map((s) => (s.id === existingId ? savedRecord : s));
       showToast(`Setoran bulan ${setoranData.month}/${setoranData.year} untuk "${member?.name}" berhasil diperbarui!`);
     } else {
-      // Insert new record
-      const newRecord: JariyahSetoran = {
+      savedRecord = {
         ...setoranData,
         id: `set-${Date.now()}`,
       };
-      updatedSetoran = [newRecord, ...setoranList];
+      updatedSetoran = [savedRecord, ...setoranList];
       showToast(`Setoran bulan ${setoranData.month}/${setoranData.year} untuk "${member?.name}" berhasil dicatat!`);
     }
 
     setSetoranList(updatedSetoran);
     saveSetoran(updatedSetoran);
+    await syncSaveSetoran(savedRecord);
   };
 
-  const handleDeleteSetoran = (id: string) => {
+  const handleDeleteSetoran = async (id: string) => {
     const updated = setoranList.filter((s) => s.id !== id);
     setSetoranList(updated);
     saveSetoran(updated);
-    showToast('Catatan setoran telah dihapus.');
+    await syncDeleteSetoran(id);
+    showToast('Catatan setoran telah dihapus dari Cloud.');
   };
 
   // Reset Demo Data
@@ -272,6 +318,7 @@ export default function App() {
         onOpenSettings={() => setIsAdminSettingsOpen(true)}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
+        isCloudConnected={isCloudConnected}
       />
 
       {/* Main Container with responsive padding for mobile bottom bar */}

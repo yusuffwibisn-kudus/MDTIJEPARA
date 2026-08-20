@@ -1,0 +1,69 @@
+{
+  "entities": {
+    "Member": {
+      "title": "Member",
+      "description": "Data anggota jariyah MDTI Paseban Agung",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "address": { "type": "string" },
+        "joinDate": { "type": "string" },
+        "category": { "type": "string" },
+        "kelompok": { "type": "string" },
+        "kategori": { "type": "string" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "name"]
+    },
+    "JariyahSetoran": {
+      "title": "JariyahSetoran",
+      "description": "Catatan setoran jariyah anggota",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "memberId": { "type": "string" },
+        "month": { "type": "number" },
+        "year": { "type": "number" },
+        "amount": { "type": "number" },
+        "jenisJariyah": { "type": "string" },
+        "dateSubmitted": { "type": "string" },
+        "recordedBy": { "type": "string" },
+        "notes": { "type": "string" }
+      },
+      "required": ["id", "memberId", "amount", "month", "year"]
+    },
+    "CategoryItem": {
+      "title": "CategoryItem",
+      "description": "Master kelompok dan kategori",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "type": "string" },
+        "description": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "name"]
+    }
+  },
+  "firestore": {
+    "/members/{memberId}": {
+      "schema": "Member",
+      "description": "Daftar anggota jariyah"
+    },
+    "/setoran/{setoranId}": {
+      "schema": "JariyahSetoran",
+      "description": "Daftar transaksi setoran"
+    },
+    "/categories/{categoryId}": {
+      "schema": "CategoryItem",
+      "description": "Daftar kategori dan kelompok"
+    },
+    "/settings/{docId}": {
+      "description": "Konfigurasi dan password admin"
+    }
+  }
+}

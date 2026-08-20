@@ -22,7 +22,15 @@ import {
   clearAllDatabaseForProduction,
   resetToSeedData,
   DEFAULT_ADMIN_EMAIL,
+  getStoredCategories,
+  getStoredMembers,
 } from '../utils/storage';
+import {
+  syncSaveAdminPassword,
+  syncClearTransactions,
+  syncClearAllDatabase,
+  syncRestoreDatabase,
+} from '../services/firestoreSync';
 import { Member, JariyahSetoran, CategoryItem } from '../types';
 
 interface AdminSettingsModalProps {
@@ -58,7 +66,7 @@ export const AdminSettingsModal: React.FC<AdminSettingsModalProps> = ({
 
   const currentPassword = getStoredAdminPassword();
 
-  const handleUpdatePassword = (e: React.FormEvent) => {
+  const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setPassError('');
     setPassSuccess('');
@@ -83,12 +91,12 @@ export const AdminSettingsModal: React.FC<AdminSettingsModalProps> = ({
       return;
     }
 
-    saveAdminPassword(newPassword);
-    setPassSuccess('Password Admin berhasil diubah dan disimpan permanen.');
+    await syncSaveAdminPassword(newPassword);
+    setPassSuccess('Password Admin berhasil diubah dan disinkronkan ke cloud.');
     setOldPassword('');
     setNewPassword('');
     setConfirmPassword('');
-    onToast('Kata sandi Admin berhasil diperbarui.');
+    onToast('Kata sandi Admin berhasil diperbarui & tersinkronisasi.');
   };
 
   const handleDownloadBackup = () => {
@@ -111,14 +119,19 @@ export const AdminSettingsModal: React.FC<AdminSettingsModalProps> = ({
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       const content = event.target?.result as string;
       if (content) {
         const res = importFullDatabaseBackup(content);
         if (res.success && res.data) {
-          setImportStatus({ type: 'success', message: res.message });
-          onDataResetOrRestored(res.data);
-          onToast(res.message);
+          try {
+            await syncRestoreDatabase(res.data);
+            setImportStatus({ type: 'success', message: `${res.message} (Tersinkron ke Cloud)` });
+            onDataResetOrRestored(res.data);
+            onToast(`${res.message} & disinkronkan ke Cloud.`);
+          } catch (e) {
+            setImportStatus({ type: 'error', message: 'Gagal menyinkronkan data pemulihan ke cloud database.' });
+          }
         } else {
           setImportStatus({ type: 'error', message: res.message });
         }
@@ -127,21 +140,23 @@ export const AdminSettingsModal: React.FC<AdminSettingsModalProps> = ({
     reader.readAsText(file);
   };
 
-  const handleExecuteCleanData = () => {
+  const handleExecuteCleanData = async () => {
     if (confirmCleanType === 'transaksi') {
       clearAllTransactionData();
+      await syncClearTransactions();
       onDataResetOrRestored({
-        members: JSON.parse(localStorage.getItem('sipenja_members_v1') || '[]'),
+        members: getStoredMembers(),
         setoran: [],
-        categories: JSON.parse(localStorage.getItem('sipenja_categories_v2') || '[]'),
+        categories: getStoredCategories(),
       });
       setConfirmCleanType(null);
-      onToast('Seluruh riwayat transaksi setoran telah dikosongkan.');
+      onToast('Seluruh riwayat transaksi setoran telah dikosongkan dari Cloud & Lokal.');
     } else if (confirmCleanType === 'all') {
       const emptyData = clearAllDatabaseForProduction();
+      await syncClearAllDatabase();
       onDataResetOrRestored(emptyData);
       setConfirmCleanType(null);
-      onToast('Database telah dikosongkan untuk memulai input data murni dari awal.');
+      onToast('Database Cloud & Lokal telah dikosongkan untuk memulai input data murni.');
     }
   };
 

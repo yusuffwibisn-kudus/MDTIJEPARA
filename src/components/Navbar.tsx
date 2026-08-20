@@ -1,5 +1,5 @@
 import React from 'react';
-import { HandHeart, ShieldCheck, Eye, LogIn, LogOut, Settings, UserCheck, FolderKanban } from 'lucide-react';
+import { HandHeart, ShieldCheck, Eye, LogIn, LogOut, Settings, UserCheck, FolderKanban, Cloud } from 'lucide-react';
 import { Role, User } from '../types';
 
 export type ActiveTabType = 'pantau' | 'admin-members' | 'admin-categories' | 'admin-setoran' | 'laporan';
@@ -12,6 +12,7 @@ interface NavbarProps {
   onOpenSettings?: () => void;
   activeTab: ActiveTabType;
   setActiveTab: (tab: ActiveTabType) => void;
+  isCloudConnected?: boolean;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -22,6 +23,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenSettings,
   activeTab,
   setActiveTab,
+  isCloudConnected = true,
 }) => {
   const isAdmin = currentUser?.role === 'admin';
 
@@ -88,11 +90,18 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Read-only Badge and Login Button for Pantau */}
             {!isAdmin ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 <div className="hidden sm:flex items-center gap-1 bg-[#2D5A27]/10 text-[#2D5A27] px-2.5 py-1 rounded-lg text-[11px] font-bold border border-[#2D5A27]/20">
                   <Eye className="w-3.5 h-3.5 text-[#D4AF37]" />
                   <span>Mode Pantau</span>
                 </div>
+                {isCloudConnected && (
+                  <div className="hidden xl:flex items-center gap-1 bg-emerald-50 text-emerald-700 px-2 py-1 rounded-lg text-[10px] font-medium border border-emerald-200" title="Data tersinkron otomatis antar HP dan Laptop">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <Cloud className="w-3 h-3" />
+                    <span>Real-time Cloud</span>
+                  </div>
+                )}
                 <button
                   onClick={onOpenLogin}
                   className="flex items-center gap-1.5 bg-[#2D5A27] hover:bg-[#23471f] text-white font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm transition-all shadow-xs cursor-pointer"
@@ -103,6 +112,13 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
             ) : (
               <div className="flex items-center gap-1 sm:gap-2">
+                {isCloudConnected && (
+                  <div className="hidden xl:flex items-center gap-1 bg-emerald-50 text-emerald-700 px-2 py-1 rounded-lg text-[10px] font-medium border border-emerald-200" title="Data tersinkron otomatis antar HP dan Laptop">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <Cloud className="w-3 h-3" />
+                    <span>Cloud Sync</span>
+                  </div>
+                )}
                 {/* User Avatar & Name */}
                 <div className="flex items-center gap-1.5 sm:gap-2 bg-[#F4F1EA] px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl border border-[#D1D5DB]/60">
                   <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-[#2D5A27] flex items-center justify-center text-white font-bold text-[10px] sm:text-xs shrink-0">

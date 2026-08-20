@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Members collection
+    match /members/{memberId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
+    // Setoran collection
+    match /setoran/{setoranId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
+    // Categories & Kelompok collection
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
+    // Settings & System config
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if true;
+    }
+  }
+}
