@@ -7,6 +7,7 @@ import { InputSetoranModal } from './components/InputSetoranModal';
 import { MemberReport } from './components/MemberReport';
 import { PantauDashboard } from './components/PantauDashboard';
 import { MemberDetailModal } from './components/MemberDetailModal';
+import { AdminSettingsModal } from './components/AdminSettingsModal';
 import { Member, JariyahSetoran, User, Role, CategoryItem } from './types';
 import {
   getStoredMembers,
@@ -37,6 +38,7 @@ export default function App() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
   const [isInputModalOpen, setIsInputModalOpen] = useState<boolean>(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState<boolean>(false);
+  const [isAdminSettingsOpen, setIsAdminSettingsOpen] = useState<boolean>(false);
 
   // Selected Data for Modals
   const [selectedMemberForSetoran, setSelectedMemberForSetoran] = useState<Member | null>(null);
@@ -277,7 +279,7 @@ export default function App() {
         onOpenLogin={() => setIsLoginModalOpen(true)}
         onLogout={handleLogout}
         onSwitchRole={handleSwitchRole}
-        onResetData={handleResetData}
+        onOpenSettings={() => setIsAdminSettingsOpen(true)}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
       />
@@ -469,6 +471,17 @@ export default function App() {
         currentUser={currentUser}
         onOpenInputForMember={handleOpenInputForMember}
         onDeleteSetoran={handleDeleteSetoran}
+      />
+
+      <AdminSettingsModal
+        isOpen={isAdminSettingsOpen}
+        onClose={() => setIsAdminSettingsOpen(false)}
+        onDataResetOrRestored={(newData) => {
+          setMembers(newData.members);
+          setSetoranList(newData.setoran);
+          setCategories(newData.categories);
+        }}
+        onToast={showToast}
       />
     </div>
   );

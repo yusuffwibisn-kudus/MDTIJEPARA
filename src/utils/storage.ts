@@ -133,3 +133,61 @@ export function resetToSeedData(): { members: Member[]; setoran: JariyahSetoran[
   localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(INITIAL_CATEGORIES));
   return { members: INITIAL_MEMBERS, setoran: INITIAL_SETORAN, categories: INITIAL_CATEGORIES };
 }
+
+export function clearAllTransactionData(): void {
+  try {
+    localStorage.setItem(SETORAN_STORAGE_KEY, JSON.stringify([]));
+  } catch (err) {
+    console.error('Failed to clear transaction data', err);
+  }
+}
+
+export function clearAllDatabaseForProduction(): { members: Member[]; setoran: JariyahSetoran[]; categories: CategoryItem[] } {
+  try {
+    localStorage.setItem(MEMBERS_STORAGE_KEY, JSON.stringify([]));
+    localStorage.setItem(SETORAN_STORAGE_KEY, JSON.stringify([]));
+    // Keep initial standard categories or custom ones
+    const currentCategories = getStoredCategories();
+    return { members: [], setoran: [], categories: currentCategories };
+  } catch (err) {
+    console.error('Failed to clear database for production', err);
+    return { members: [], setoran: [], categories: [] };
+  }
+}
+
+export function exportFullDatabaseBackup(): string {
+  const data = {
+    appName: 'MDTI PASEBAN AGUNG JEPARA',
+    version: '2.4.0',
+    exportedAt: new Date().toISOString(),
+    members: getStoredMembers(),
+    setoran: getStoredSetoran(),
+    categories: getStoredCategories(),
+  };
+  return JSON.stringify(data, null, 2);
+}
+
+export function importFullDatabaseBackup(jsonString: string): { success: boolean; message: string; data?: { members: Member[]; setoran: JariyahSetoran[]; categories: CategoryItem[] } } {
+  try {
+    const parsed = JSON.parse(jsonString);
+    if (!parsed || (!Array.isArray(parsed.members) && !Array.isArray(parsed.setoran))) {
+      return { success: false, message: 'Format file JSON cadangan tidak valid.' };
+    }
+
+    const members: Member[] = Array.isArray(parsed.members) ? parsed.members : [];
+    const setoran: JariyahSetoran[] = Array.isArray(parsed.setoran) ? parsed.setoran : [];
+    const categories: CategoryItem[] = Array.isArray(parsed.categories) ? parsed.categories : getStoredCategories();
+
+    saveMembers(members);
+    saveSetoran(setoran);
+    saveCategories(categories);
+
+    return {
+      success: true,
+      message: `Berhasil memulihkan ${members.length} data anggota dan ${setoran.length} transaksi setoran.`,
+      data: { members, setoran, categories }
+    };
+  } catch (err) {
+    return { success: false, message: 'Gagal memproses file JSON cadangan: format rusak.' };
+  }
+}

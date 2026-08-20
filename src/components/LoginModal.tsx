@@ -3,6 +3,7 @@ import {
   X,
   ShieldCheck,
   Eye,
+  EyeOff,
   KeyRound,
   User as UserIcon,
   AlertCircle,
@@ -51,6 +52,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   const [resetError, setResetError] = useState<string>('');
   const [isEmailSent, setIsEmailSent] = useState<boolean>(false);
 
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+
   if (!isOpen) return null;
 
   const currentAdminPassword = getStoredAdminPassword();
@@ -84,7 +87,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         if (onClose) onClose();
         return;
       } else {
-        setError('Password salah! Aplikasi web tidak dapat dibuka. Silakan masukkan password yang benar atau gunakan fitur Reset Password.');
+        setError('Password Admin salah! Silakan periksa kembali atau gunakan tombol "Reset Password?".');
         return;
       }
     }
@@ -105,12 +108,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         if (onClose) onClose();
         return;
       } else {
-        setError('Password tim pengawas salah! Akses ditolak.');
+        setError('Password Tim Pengawas salah! Silakan gunakan password yang sesuai.');
         return;
       }
     }
 
-    setError('Email / Username atau Password tidak terdaftar. Periksa kembali data Anda atau lakukan reset password.');
+    setError('Email / Username atau Password tidak terdaftar. Pastikan memasukkan akun Pengurus atau Tim Pengawas.');
   };
 
   const handleSendResetEmail = (e: React.FormEvent) => {
@@ -181,23 +184,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     setConfirmPassword('');
   };
 
-  const loginAsPreset = (role: Role) => {
-    if (role === 'admin') {
-      onLoginSuccess({
-        username: DEFAULT_ADMIN_EMAIL,
-        name: 'Pengurus Admin',
-        role: 'admin',
-      });
-    } else {
-      onLoginSuccess({
-        username: 'pengawas',
-        name: 'Tim Pengawas (Pantau)',
-        role: 'pantau',
-      });
-    }
-    if (onClose) onClose();
-  };
-
   const containerClasses = isGatekeeperMode
     ? 'fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-[#1b3817] via-[#2D5A27] to-[#122810] p-3 sm:p-4 overflow-y-auto'
     : 'fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto';
@@ -223,7 +209,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             </div>
             <div>
               <h2 className="text-lg font-bold font-sans text-white">
-                {activeView === 'login' && 'Sistem Masuk Aplikasi'}
+                {activeView === 'login' && 'Masuk Akun Sistem'}
                 {activeView === 'reset-request' && 'Reset Password via Email'}
                 {activeView === 'reset-verify' && 'Verifikasi & Password Baru'}
               </h2>
@@ -263,51 +249,26 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           {/* VIEW 1: NORMAL LOGIN */}
           {activeView === 'login' && (
             <>
-              {/* Quick Access Preset */}
-              <div className="bg-[#F4F1EA] border border-[#E5E7EB] p-3 rounded-xl">
-                <p className="text-xs font-semibold text-[#2D5A27] mb-2 flex items-center justify-between">
-                  <span>Akses Cepat Pengurus / Pengawas:</span>
-                </p>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => loginAsPreset('admin')}
-                    className="flex items-center justify-center gap-1.5 bg-[#2D5A27] hover:bg-[#23471f] text-white px-3 py-2 rounded-lg text-xs font-semibold transition-all shadow-xs cursor-pointer"
-                  >
-                    <ShieldCheck className="w-3.5 h-3.5 text-[#D4AF37]" />
-                    <span>Masuk Admin</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => loginAsPreset('pantau')}
-                    className="flex items-center justify-center gap-1.5 bg-gray-800 hover:bg-gray-900 text-white px-3 py-2 rounded-lg text-xs font-semibold transition-all shadow-xs cursor-pointer"
-                  >
-                    <Eye className="w-3.5 h-3.5 text-[#D4AF37]" />
-                    <span>Masuk Pantau</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="relative flex py-0.5 items-center">
-                <div className="flex-grow border-t border-gray-200"></div>
-                <span className="shrink-0 mx-3 text-gray-400 text-xs uppercase font-medium">atau masuk manual</span>
-                <div className="flex-grow border-t border-gray-200"></div>
-              </div>
-
-              <form onSubmit={handleLoginSubmit} className="space-y-3.5">
+              <form onSubmit={handleLoginSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Email / Username</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Email / Username Akun
+                  </label>
                   <div className="relative">
                     <UserIcon className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
                     <input
                       type="text"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      placeholder="Masukkan email / username"
+                      placeholder="mdtijepara@gmail.com / pengawas"
                       className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#2D5A27]"
                       autoComplete="username"
+                      required
                     />
                   </div>
+                  <p className="text-[10px] text-gray-500 mt-1">
+                    Gunakan <strong>mdtijepara@gmail.com</strong> untuk Admin atau <strong>pengawas</strong> untuk Tim Pantau.
+                  </p>
                 </div>
 
                 <div>
@@ -329,19 +290,28 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   <div className="relative">
                     <KeyRound className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
                     <input
-                      type="password"
+                      type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Masukkan password"
-                      className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#2D5A27]"
+                      placeholder="Masukkan kata sandi"
+                      className="w-full pl-9 pr-10 py-2 border border-[#D1D5DB] rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#2D5A27]"
                       autoComplete="current-password"
+                      required
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 cursor-pointer"
+                      title={showPassword ? 'Sembunyikan password' : 'Lihat password'}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full bg-[#2D5A27] hover:bg-[#23471f] text-white font-bold py-2.5 rounded-xl text-xs sm:text-sm transition-all shadow-md cursor-pointer flex items-center justify-center gap-2 mt-2"
+                  className="w-full bg-[#2D5A27] hover:bg-[#23471f] text-white font-bold py-2.5 rounded-xl text-xs sm:text-sm transition-all shadow-md cursor-pointer flex items-center justify-center gap-2 mt-3"
                 >
                   <Lock className="w-4 h-4 text-[#D4AF37]" />
                   <span>Buka & Masuk Aplikasi</span>

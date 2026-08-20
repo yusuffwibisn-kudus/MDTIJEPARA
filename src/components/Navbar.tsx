@@ -1,5 +1,5 @@
 import React from 'react';
-import { HandHeart, ShieldCheck, Eye, LogIn, LogOut, RefreshCw, UserCheck, FolderKanban } from 'lucide-react';
+import { HandHeart, ShieldCheck, Eye, LogIn, LogOut, Settings, UserCheck, FolderKanban } from 'lucide-react';
 import { Role, User } from '../types';
 
 export type ActiveTabType = 'pantau' | 'admin-members' | 'admin-categories' | 'admin-setoran' | 'laporan';
@@ -9,7 +9,7 @@ interface NavbarProps {
   onOpenLogin: () => void;
   onLogout: () => void;
   onSwitchRole: (role: Role) => void;
-  onResetData?: () => void;
+  onOpenSettings?: () => void;
   activeTab: ActiveTabType;
   setActiveTab: (tab: ActiveTabType) => void;
 }
@@ -19,6 +19,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenLogin,
   onLogout,
   onSwitchRole,
+  onOpenSettings,
   activeTab,
   setActiveTab,
 }) => {
@@ -105,6 +106,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                     <p className="text-[10px] text-gray-500 uppercase tracking-wider">{isAdmin ? 'Pengurus Admin' : 'Pengawas Pusat'}</p>
                   </div>
                 </div>
+
+                {/* Admin Settings Button */}
+                {isAdmin && onOpenSettings && (
+                  <button
+                    onClick={onOpenSettings}
+                    className="p-1.5 sm:p-2 text-[#2D5A27] hover:bg-[#2D5A27]/10 rounded-lg transition-colors cursor-pointer"
+                    title="Pengaturan & Cadangan Database"
+                  >
+                    <Settings className="w-4 h-4" />
+                  </button>
+                )}
 
                 {/* Logout button */}
                 <button
