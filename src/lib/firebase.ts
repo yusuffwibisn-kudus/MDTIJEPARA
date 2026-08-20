@@ -15,8 +15,15 @@ const firebaseConfig = {
 // Initialize Firebase App instance safely (singleton)
 export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-// Initialize Firestore instance using the custom provisioned database ID
-const databaseId = firebaseConfigJson.firestoreDatabaseId || '(default)';
-export const db: Firestore = getFirestore(app, databaseId);
+// Initialize Firestore instance correctly based on project configuration
+const databaseId =
+  firebaseConfig.projectId === firebaseConfigJson.projectId
+    ? firebaseConfigJson.firestoreDatabaseId || '(default)'
+    : '(default)';
+
+export const db: Firestore =
+  databaseId && databaseId !== '(default)'
+    ? getFirestore(app, databaseId)
+    : getFirestore(app);
 
 export default db;
