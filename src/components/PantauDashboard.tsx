@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Eye, ShieldAlert, Filter, Calendar, Users, Tag, TrendingUp, CheckCircle2, Clock, Search, AlertTriangle, Trash2, X, ChevronDown } from 'lucide-react';
+import { Eye, Filter, Calendar, Users, Tag, TrendingUp, CheckCircle2, Clock, Search, AlertTriangle, Trash2, X, ChevronDown } from 'lucide-react';
 import { DashboardStats } from './DashboardStats';
 import { JariyahChart } from './JariyahChart';
 import { Member, JariyahSetoran, JariyahSummary, CategoryItem } from '../types';
@@ -125,16 +125,6 @@ export const PantauDashboard: React.FC<PantauDashboardProps> = ({
             </p>
           </div>
         </div>
-
-        {!isAdmin && (
-          <button
-            onClick={onOpenLogin}
-            className="flex items-center justify-center gap-1.5 bg-[#D4AF37] hover:bg-[#c4a02e] text-[#1F2937] px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm shrink-0"
-          >
-            <ShieldAlert className="w-4 h-4" />
-            <span>Masuk Mode Admin</span>
-          </button>
-        )}
       </div>
 
       {/* Filter Period Toolbar */}

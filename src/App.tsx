@@ -298,8 +298,8 @@ export default function App() {
           />
         )}
 
-        {/* Member Management View (Admin only or redirect) */}
-        {activeTab === 'admin-members' && (
+        {/* Member Management View (Admin only) */}
+        {activeTab === 'admin-members' && currentUser?.role === 'admin' && (
           <MemberManagement
             members={members}
             categories={categories}
@@ -311,8 +311,8 @@ export default function App() {
           />
         )}
 
-        {/* Category / Kelompok Management View */}
-        {activeTab === 'admin-categories' && (
+        {/* Category / Kelompok Management View (Admin only) */}
+        {activeTab === 'admin-categories' && currentUser?.role === 'admin' && (
           <CategoryManagement
             categories={categories}
             members={members}
@@ -323,8 +323,8 @@ export default function App() {
           />
         )}
 
-        {/* Input Setoran Shortcut View */}
-        {activeTab === 'admin-setoran' && (
+        {/* Input Setoran Shortcut View (Admin only) */}
+        {activeTab === 'admin-setoran' && currentUser?.role === 'admin' && (
           <div className="bg-white rounded-2xl p-6 border border-[#E5E7EB] shadow-xs space-y-4 max-w-xl mx-auto text-center">
             <h2 className="text-xl font-bold font-serif text-[#2D5A27]">
               Input Setoran Jariyah Bulanan
@@ -388,7 +388,7 @@ export default function App() {
           <span className="text-[10px] mt-0.5 whitespace-nowrap">Laporan</span>
         </button>
 
-        {currentUser?.role === 'admin' ? (
+        {currentUser?.role === 'admin' && (
           <>
             <button
               onClick={() => {
@@ -431,16 +431,6 @@ export default function App() {
               <span className="text-[10px] mt-0.5 whitespace-nowrap">Kelompok</span>
             </button>
           </>
-        ) : (
-          <button
-            onClick={() => handleSwitchRole('admin')}
-            className="flex flex-col items-center justify-center flex-1 py-1 px-1 rounded-xl transition-all text-amber-700 hover:text-amber-900"
-          >
-            <div className="p-1 rounded-lg bg-amber-50">
-              <Lock className="w-5 h-5 text-amber-600" />
-            </div>
-            <span className="text-[10px] mt-0.5 whitespace-nowrap font-semibold">Ke Admin</span>
-          </button>
         )}
       </nav>
 

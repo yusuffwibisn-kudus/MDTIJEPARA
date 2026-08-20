@@ -55,34 +55,43 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* User Status Badge & Role Switcher */}
           <div className="flex items-center space-x-1.5 sm:space-x-3">
             
-            {/* Mode Switcher Pill */}
-            <div className="flex bg-[#E5E7EB] p-0.5 sm:p-1 rounded-lg text-[11px] sm:text-xs font-medium">
-              <button
-                onClick={() => {
-                  onSwitchRole('pantau');
-                  setActiveTab('pantau');
-                }}
-                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md transition-all cursor-pointer ${
-                  !isAdmin
-                    ? 'bg-white text-[#2D5A27] shadow-xs font-bold'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                Pantau
-              </button>
-              <button
-                onClick={() => {
-                  onSwitchRole('admin');
-                }}
-                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md transition-all cursor-pointer ${
-                  isAdmin
-                    ? 'bg-[#2D5A27] text-white shadow-xs font-bold'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                Admin
-              </button>
-            </div>
+            {/* Admin-only quick tab switcher if logged in as Admin */}
+            {isAdmin && (
+              <div className="hidden sm:flex bg-[#E5E7EB] p-0.5 sm:p-1 rounded-lg text-[11px] sm:text-xs font-medium">
+                <button
+                  onClick={() => {
+                    setActiveTab('pantau');
+                  }}
+                  className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md transition-all cursor-pointer ${
+                    activeTab === 'pantau'
+                      ? 'bg-white text-[#2D5A27] shadow-xs font-bold'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Lihat Pantau
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveTab('admin-members');
+                  }}
+                  className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md transition-all cursor-pointer ${
+                    activeTab !== 'pantau' && activeTab !== 'laporan'
+                      ? 'bg-[#2D5A27] text-white shadow-xs font-bold'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  Menu Admin
+                </button>
+              </div>
+            )}
+
+            {/* Read-only Badge for Pantau */}
+            {!isAdmin && currentUser && (
+              <div className="flex items-center gap-1 bg-[#2D5A27]/10 text-[#2D5A27] px-2.5 py-1 rounded-lg text-[11px] font-bold border border-[#2D5A27]/20">
+                <Eye className="w-3.5 h-3.5 text-[#D4AF37]" />
+                <span>Mode Pantau</span>
+              </div>
+            )}
 
             {currentUser ? (
               <div className="flex items-center gap-1 sm:gap-2">
