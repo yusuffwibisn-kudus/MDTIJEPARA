@@ -86,29 +86,36 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
             )}
 
-            {/* Read-only Badge for Pantau */}
-            {!isAdmin && currentUser && (
-              <div className="flex items-center gap-1 bg-[#2D5A27]/10 text-[#2D5A27] px-2.5 py-1 rounded-lg text-[11px] font-bold border border-[#2D5A27]/20">
-                <Eye className="w-3.5 h-3.5 text-[#D4AF37]" />
-                <span>Mode Pantau</span>
+            {/* Read-only Badge and Login Button for Pantau */}
+            {!isAdmin ? (
+              <div className="flex items-center gap-2">
+                <div className="hidden sm:flex items-center gap-1 bg-[#2D5A27]/10 text-[#2D5A27] px-2.5 py-1 rounded-lg text-[11px] font-bold border border-[#2D5A27]/20">
+                  <Eye className="w-3.5 h-3.5 text-[#D4AF37]" />
+                  <span>Mode Pantau</span>
+                </div>
+                <button
+                  onClick={onOpenLogin}
+                  className="flex items-center gap-1.5 bg-[#2D5A27] hover:bg-[#23471f] text-white font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm transition-all shadow-xs cursor-pointer"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#D4AF37]" />
+                  <span>Masuk Admin</span>
+                </button>
               </div>
-            )}
-
-            {currentUser ? (
+            ) : (
               <div className="flex items-center gap-1 sm:gap-2">
                 {/* User Avatar & Name */}
                 <div className="flex items-center gap-1.5 sm:gap-2 bg-[#F4F1EA] px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl border border-[#D1D5DB]/60">
                   <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-[#2D5A27] flex items-center justify-center text-white font-bold text-[10px] sm:text-xs shrink-0">
-                    {currentUser.username.slice(0, 2).toUpperCase()}
+                    AD
                   </div>
                   <div className="text-left hidden lg:block">
                     <p className="text-xs font-semibold text-[#1F2937] leading-tight truncate max-w-[120px]">{currentUser.name}</p>
-                    <p className="text-[10px] text-gray-500 uppercase tracking-wider">{isAdmin ? 'Pengurus Admin' : 'Pengawas Pusat'}</p>
+                    <p className="text-[10px] text-gray-500 uppercase tracking-wider">Pengurus Admin</p>
                   </div>
                 </div>
 
                 {/* Admin Settings Button */}
-                {isAdmin && onOpenSettings && (
+                {onOpenSettings && (
                   <button
                     onClick={onOpenSettings}
                     className="p-1.5 sm:p-2 text-[#2D5A27] hover:bg-[#2D5A27]/10 rounded-lg transition-colors cursor-pointer"
@@ -122,20 +129,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   onClick={onLogout}
                   className="p-1.5 sm:p-2 text-gray-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                  title="Logout / Kunci Aplikasi"
+                  title="Logout / Kembali ke Mode Pantau"
                 >
                   <LogOut className="w-4 h-4" />
                 </button>
               </div>
-            ) : (
-              <button
-                onClick={onOpenLogin}
-                className="flex items-center gap-1.5 bg-[#2D5A27] hover:bg-[#23471f] text-white font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm transition-all shadow-sm cursor-pointer"
-              >
-                <LogIn className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#D4AF37]" />
-                <span className="hidden sm:inline">Masuk / Login</span>
-                <span className="sm:hidden">Masuk</span>
-              </button>
             )}
           </div>
         </div>

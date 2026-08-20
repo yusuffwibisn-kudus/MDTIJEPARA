@@ -19,6 +19,7 @@ import {
   getStoredAuthUser,
   saveStoredAuthUser,
   DEFAULT_ADMIN_EMAIL,
+  DEFAULT_PANTAU_USER,
   resetToSeedData,
 } from './utils/storage';
 import { CheckCircle2, AlertCircle, Lock, Eye, UserCheck, Users, FolderKanban, HandHeart, Plus } from 'lucide-react';
@@ -29,8 +30,8 @@ export default function App() {
   const [setoranList, setSetoranList] = useState<JariyahSetoran[]>([]);
   const [categories, setCategories] = useState<CategoryItem[]>([]);
   
-  // Auth State - Checked from storage, defaults to null so app is locked until login
-  const [currentUser, setCurrentUser] = useState<User | null>(() => getStoredAuthUser());
+  // Auth State - Defaults to Pengawas/Pantau, persists if logged in as Admin
+  const [currentUser, setCurrentUser] = useState<User>(() => getStoredAuthUser());
 
   const [activeTab, setActiveTab] = useState<ActiveTabType>('pantau');
 
@@ -73,10 +74,10 @@ export default function App() {
   };
 
   const handleLogout = () => {
-    setCurrentUser(null);
-    saveStoredAuthUser(null);
+    setCurrentUser(DEFAULT_PANTAU_USER);
+    saveStoredAuthUser(DEFAULT_PANTAU_USER);
     setActiveTab('pantau');
-    showToast('Anda telah keluar. Aplikasi dikunci kembali.');
+    showToast('Anda telah keluar dari akun Admin. Kembali ke Mode Pantau.');
   };
 
   const handleSwitchRole = (newRole: Role) => {
@@ -250,17 +251,6 @@ export default function App() {
     setSelectedMemberForDetail(member);
     setIsDetailModalOpen(true);
   };
-
-  // If user is not authenticated, lock web application behind full-screen login gatekeeper
-  if (!currentUser) {
-    return (
-      <LoginModal
-        isOpen={true}
-        isGatekeeperMode={true}
-        onLoginSuccess={handleLoginSuccess}
-      />
-    );
-  }
 
   return (
     <div className="min-h-screen bg-[#F4F1EA] text-[#1F2937] flex flex-col font-sans antialiased">

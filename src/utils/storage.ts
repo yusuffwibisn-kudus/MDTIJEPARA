@@ -1,14 +1,29 @@
 import { Member, JariyahSetoran, CategoryItem, Role, User } from '../types';
 import { INITIAL_MEMBERS, INITIAL_SETORAN, INITIAL_CATEGORIES } from '../data/initialData';
 
-const MEMBERS_STORAGE_KEY = 'sipenja_members_prod_v2';
-const SETORAN_STORAGE_KEY = 'sipenja_setoran_prod_v2';
-const CATEGORIES_STORAGE_KEY = 'sipenja_categories_v2';
-const AUTH_STORAGE_KEY = 'sipenja_auth_user_v2';
+const MEMBERS_STORAGE_KEY = 'sipenja_members_clean_prod_v3';
+const SETORAN_STORAGE_KEY = 'sipenja_setoran_clean_prod_v3';
+const CATEGORIES_STORAGE_KEY = 'sipenja_categories_clean_prod_v3';
+const AUTH_STORAGE_KEY = 'sipenja_auth_user_clean_prod_v3';
 const ADMIN_PASSWORD_KEY = 'sipenja_admin_password_v2';
 
 export const DEFAULT_ADMIN_EMAIL = 'mdtijepara@gmail.com';
 export const DEFAULT_ADMIN_PASSWORD = 'admin123';
+
+export const DEFAULT_PANTAU_USER: User = {
+  username: 'pengawas',
+  name: 'Tim Pengawas / Tamu',
+  role: 'pantau',
+};
+
+// Cleanup old legacy keys
+try {
+  ['sipenja_members_v1', 'sipenja_setoran_v1', 'sipenja_members_prod_v2', 'sipenja_setoran_prod_v2'].forEach((k) => {
+    localStorage.removeItem(k);
+  });
+} catch (e) {
+  // ignore
+}
 
 export function getStoredAdminPassword(): string {
   try {
@@ -32,21 +47,23 @@ export function saveAdminPassword(newPassword: string): void {
   }
 }
 
-export function getStoredAuthUser(): User | null {
+export function getStoredAuthUser(): User {
   try {
     const raw = localStorage.getItem(AUTH_STORAGE_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw);
+    if (!raw) return DEFAULT_PANTAU_USER;
+    const parsed = JSON.parse(raw);
+    if (!parsed || !parsed.role) return DEFAULT_PANTAU_USER;
+    return parsed;
   } catch (err) {
     console.error('Failed to get auth user', err);
-    return null;
+    return DEFAULT_PANTAU_USER;
   }
 }
 
 export function saveStoredAuthUser(user: User | null): void {
   try {
     if (!user) {
-      localStorage.removeItem(AUTH_STORAGE_KEY);
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(DEFAULT_PANTAU_USER));
     } else {
       localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
     }
@@ -81,13 +98,23 @@ export function getStoredMembers(): Member[] {
   try {
     const raw = localStorage.getItem(MEMBERS_STORAGE_KEY);
     if (!raw) {
-      localStorage.setItem(MEMBERS_STORAGE_KEY, JSON.stringify(INITIAL_MEMBERS));
-      return INITIAL_MEMBERS;
+      localStorage.setItem(MEMBERS_STORAGE_KEY, JSON.stringify([]));
+      return [];
     }
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      // If legacy demo member names exist, return empty array
+      const hasDemo = parsed.some((m: any) => m.id === 'mbr-1' || m.name === 'H. Ahmad Dahlan' || m.id === 'mbr-2');
+      if (hasDemo) {
+        localStorage.setItem(MEMBERS_STORAGE_KEY, JSON.stringify([]));
+        return [];
+      }
+      return parsed;
+    }
+    return [];
   } catch (err) {
     console.error('Failed to parse stored members', err);
-    return INITIAL_MEMBERS;
+    return [];
   }
 }
 
@@ -107,12 +134,16 @@ export function getStoredSetoran(): JariyahSetoran[] {
       return [];
     }
     const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed) && parsed.some((s: JariyahSetoran) => s.id && s.id.startsWith('set-'))) {
-      const filtered = parsed.filter((s: JariyahSetoran) => !s.id.startsWith('set-'));
-      localStorage.setItem(SETORAN_STORAGE_KEY, JSON.stringify(filtered));
-      return filtered;
+    if (Array.isArray(parsed)) {
+      const hasDemo = parsed.some((s: any) => s.id && (s.id.startsWith('set-') || s.memberId === 'mbr-1'));
+      if (hasDemo) {
+        const filtered = parsed.filter((s: any) => !s.id?.startsWith('set-') && s.memberId !== 'mbr-1');
+        localStorage.setItem(SETORAN_STORAGE_KEY, JSON.stringify(filtered));
+        return filtered;
+      }
+      return parsed;
     }
-    return parsed;
+    return [];
   } catch (err) {
     console.error('Failed to parse stored setoran', err);
     return [];
@@ -128,10 +159,10 @@ export function saveSetoran(setoranList: JariyahSetoran[]): void {
 }
 
 export function resetToSeedData(): { members: Member[]; setoran: JariyahSetoran[]; categories: CategoryItem[] } {
-  localStorage.setItem(MEMBERS_STORAGE_KEY, JSON.stringify(INITIAL_MEMBERS));
-  localStorage.setItem(SETORAN_STORAGE_KEY, JSON.stringify(INITIAL_SETORAN));
+  localStorage.setItem(MEMBERS_STORAGE_KEY, JSON.stringify([]));
+  localStorage.setItem(SETORAN_STORAGE_KEY, JSON.stringify([]));
   localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(INITIAL_CATEGORIES));
-  return { members: INITIAL_MEMBERS, setoran: INITIAL_SETORAN, categories: INITIAL_CATEGORIES };
+  return { members: [], setoran: [], categories: INITIAL_CATEGORIES };
 }
 
 export function clearAllTransactionData(): void {
@@ -146,7 +177,6 @@ export function clearAllDatabaseForProduction(): { members: Member[]; setoran: J
   try {
     localStorage.setItem(MEMBERS_STORAGE_KEY, JSON.stringify([]));
     localStorage.setItem(SETORAN_STORAGE_KEY, JSON.stringify([]));
-    // Keep initial standard categories or custom ones
     const currentCategories = getStoredCategories();
     return { members: [], setoran: [], categories: currentCategories };
   } catch (err) {
