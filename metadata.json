@@ -1,0 +1,6 @@
+{
+  "name": "MDTI PASEBAN AGUNG JEPARA",
+  "description": "Sistem Informasi Wakaf Jariyah PPTQ Cahaya Tasbih - Aplikasi pencatatan dan pemantauan setoran wakaf jariyah bulanan anggota.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
