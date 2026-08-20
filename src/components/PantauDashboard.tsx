@@ -360,7 +360,15 @@ export const PantauDashboard: React.FC<PantauDashboardProps> = ({
               {displayedSummaries.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="py-12 text-center text-gray-400 text-xs">
-                    Tidak ditemukan data anggota untuk kelompok / pencarian ini.
+                    {members.length === 0 ? (
+                      <div className="space-y-1.5 py-4">
+                        <Users className="w-8 h-8 text-gray-300 mx-auto" />
+                        <p className="font-semibold text-gray-600">Belum ada data anggota yang terdaftar</p>
+                        <p className="text-gray-400 text-[11px]">Silakan masuk sebagai Admin untuk menambahkan data anggota baru atau mengimpor data dari file Excel.</p>
+                      </div>
+                    ) : (
+                      'Tidak ditemukan data anggota untuk kelompok atau kata kunci pencarian ini.'
+                    )}
                   </td>
                 </tr>
               ) : (

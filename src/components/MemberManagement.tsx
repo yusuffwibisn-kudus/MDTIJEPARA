@@ -280,8 +280,18 @@ export const MemberManagement: React.FC<MemberManagementProps> = ({
             <tbody className="divide-y divide-gray-100">
               {filteredMembers.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-gray-400 text-xs">
-                    Tidak ada anggota ditemukan dengan kata kunci atau filter ini.
+                  <td colSpan={7} className="py-12 text-center text-gray-400 text-xs">
+                    {members.length === 0 ? (
+                      <div className="space-y-2 py-4">
+                        <Users className="w-10 h-10 text-gray-300 mx-auto" />
+                        <p className="font-semibold text-gray-700 text-sm">Belum Ada Data Anggota</p>
+                        <p className="text-gray-400 text-xs max-w-sm mx-auto">
+                          Mulai input data anggota secara manual dengan tombol <strong>"Tambah Anggota Baru"</strong> di atas atau unggah file data lewat tombol <strong>"Impor Excel"</strong>.
+                        </p>
+                      </div>
+                    ) : (
+                      'Tidak ada anggota ditemukan dengan kata kunci atau filter ini.'
+                    )}
                   </td>
                 </tr>
               ) : (

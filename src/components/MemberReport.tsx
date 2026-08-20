@@ -805,8 +805,16 @@ export const MemberReport: React.FC<MemberReportProps> = ({
               <tbody className="divide-y divide-slate-100">
                 {filteredSummaries.length === 0 ? (
                   <tr>
-                    <td colSpan={10} className="py-8 text-center text-slate-400 text-xs">
-                      Tidak ada data anggota ditemukan untuk kriteria filter ini.
+                    <td colSpan={10} className="py-12 text-center text-slate-400 text-xs">
+                      {members.length === 0 ? (
+                        <div className="space-y-1.5 py-4">
+                          <Users className="w-8 h-8 text-gray-300 mx-auto" />
+                          <p className="font-semibold text-gray-600">Belum ada data anggota</p>
+                          <p className="text-gray-400 text-[11px]">Silakan masukkan data anggota baru melalui menu Kelola Anggota oleh Admin.</p>
+                        </div>
+                      ) : (
+                        'Tidak ada data anggota ditemukan untuk kriteria filter ini.'
+                      )}
                     </td>
                   </tr>
                 ) : (

@@ -1,8 +1,8 @@
 import { Member, JariyahSetoran, CategoryItem, Role, User } from '../types';
 import { INITIAL_MEMBERS, INITIAL_SETORAN, INITIAL_CATEGORIES } from '../data/initialData';
 
-const MEMBERS_STORAGE_KEY = 'sipenja_members_v1';
-const SETORAN_STORAGE_KEY = 'sipenja_setoran_v1';
+const MEMBERS_STORAGE_KEY = 'sipenja_members_prod_v2';
+const SETORAN_STORAGE_KEY = 'sipenja_setoran_prod_v2';
 const CATEGORIES_STORAGE_KEY = 'sipenja_categories_v2';
 const AUTH_STORAGE_KEY = 'sipenja_auth_user_v2';
 const ADMIN_PASSWORD_KEY = 'sipenja_admin_password_v2';
