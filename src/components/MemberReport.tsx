@@ -475,26 +475,28 @@ export const MemberReport: React.FC<MemberReportProps> = ({
             <span>Laporan Per Anggota & Riwayat Jariyah</span>
           </h2>
           <p className="text-xs text-gray-500">
-            Tampilkan rincian setoran per anggota, filter periode, dan cetak dokumen resmi.
+            Tampilkan rincian setoran per anggota, filter periode, dan pantau status pelunasan.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            onClick={handleExportExcel}
-            className="flex items-center gap-1.5 bg-[#2D5A27] hover:bg-[#23471f] text-white font-semibold px-3.5 py-2 rounded-xl text-xs transition-all shadow-xs"
-          >
-            <FileSpreadsheet className="w-4 h-4 text-[#D4AF37]" />
-            <span>Export Excel</span>
-          </button>
-          <button
-            onClick={handlePrint}
-            className="flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-3.5 py-2 rounded-xl text-xs transition-all border border-gray-200"
-          >
-            <Printer className="w-4 h-4 text-gray-500" />
-            <span>Cetak / PDF</span>
-          </button>
-        </div>
+        {isAdmin && (
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={handleExportExcel}
+              className="flex items-center gap-1.5 bg-[#2D5A27] hover:bg-[#23471f] text-white font-semibold px-3.5 py-2 rounded-xl text-xs transition-all shadow-xs"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-[#D4AF37]" />
+              <span>Export Excel</span>
+            </button>
+            <button
+              onClick={handlePrint}
+              className="flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-3.5 py-2 rounded-xl text-xs transition-all border border-gray-200"
+            >
+              <Printer className="w-4 h-4 text-gray-500" />
+              <span>Cetak / PDF</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Filter Toolbar */}
