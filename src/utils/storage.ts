@@ -16,9 +16,9 @@ export const DEFAULT_PANTAU_USER: User = {
   role: 'pantau',
 };
 
-// Cleanup old legacy keys
+// Cleanup old legacy keys and persistent auth so admin session resets on close
 try {
-  ['sipenja_members_v1', 'sipenja_setoran_v1', 'sipenja_members_prod_v2', 'sipenja_setoran_prod_v2'].forEach((k) => {
+  ['sipenja_members_v1', 'sipenja_setoran_v1', 'sipenja_members_prod_v2', 'sipenja_setoran_prod_v2', AUTH_STORAGE_KEY].forEach((k) => {
     localStorage.removeItem(k);
   });
 } catch (e) {
@@ -49,7 +49,8 @@ export function saveAdminPassword(newPassword: string): void {
 
 export function getStoredAuthUser(): User {
   try {
-    const raw = localStorage.getItem(AUTH_STORAGE_KEY);
+    // Read from sessionStorage only (clears automatically when app/tab/browser is closed)
+    const raw = sessionStorage.getItem(AUTH_STORAGE_KEY);
     if (!raw) return DEFAULT_PANTAU_USER;
     const parsed = JSON.parse(raw);
     if (!parsed || !parsed.role) return DEFAULT_PANTAU_USER;
@@ -62,10 +63,12 @@ export function getStoredAuthUser(): User {
 
 export function saveStoredAuthUser(user: User | null): void {
   try {
-    if (!user) {
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(DEFAULT_PANTAU_USER));
+    // Always remove from localStorage to prevent cross-session persistence
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+    if (!user || user.role !== 'admin') {
+      sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(DEFAULT_PANTAU_USER));
     } else {
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+      sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
     }
   } catch (err) {
     console.error('Failed to save auth user', err);
